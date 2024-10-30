@@ -47,11 +47,11 @@ export function TextEditor() {
               <SelectValue placeholder="Select action" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="translate">Translate</SelectItem>
+              <SelectItem value="translate">العربية</SelectItem>
             </SelectContent>
           </Select>
           <Button className="bg-purple-600 hover:bg-purple-700 text-white">
-            <Wand2 className="mr-2 h-4 w-4" /> Rephrase
+            <Wand2 className="mr-2 h-4 w-4" /> كشف الأخطاء
           </Button>
         </div>
       </div>
