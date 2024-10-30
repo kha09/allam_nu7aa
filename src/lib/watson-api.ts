@@ -1,8 +1,10 @@
-export interface WatsonResponse {
+export interface ErrorItem {
   "خطأ": string;
-  "نوع الخطأ": string;
-  "تصحيح الكلمة": string;
+  "نوع_الخطأ": string;
+  "تصحيح_الكلمة": string;
 }
+
+export type WatsonResponse = ErrorItem[];
 
 export class IBMWatsonAPI {
   async generateText(prompt: string): Promise<WatsonResponse> {
@@ -20,7 +22,11 @@ export class IBMWatsonAPI {
     }
 
     const data = await response.json();
-    return data.results[0].generated_text;
+    const text = data.results[0].generated_text;
+    
+    // Convert the text to proper JSON array format
+    const formattedText = `[${text.replace(/}\s*,\s*{/g, '}, {')}]`;
+    return JSON.parse(formattedText);
   }
 }
 

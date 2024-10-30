@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Check, ChevronDown, Copy, Edit, Wand2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { watsonApi, WatsonResponse } from '@/lib/watson-api'
+import { watsonApi, WatsonResponse, ErrorItem } from '@/lib/watson-api'
 
 interface ErrorInfo {
   word: string;
@@ -21,27 +21,36 @@ export function TextEditor() {
   const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [currentResponse, setCurrentResponse] = useState<WatsonResponse | null>(null)
+  const [currentErrors, setCurrentErrors] = useState<ErrorItem[]>([])
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  const markErrorInText = (text: string, errorWord: string, errorType: string) => {
-    console.log('Marking error in text:', { text, errorWord, errorType });
+  const markErrorsInText = (text: string, errors: ErrorItem[]) => {
+    console.log('Marking errors in text:', { text, errors });
 
-    const words = text.split(/\s+/);
-    
-    const result = words.map(word => {
-      if (word === errorWord) {
-        return `<span 
+    // Create a temporary div to handle HTML safely
+    const tempDiv = document.createElement('div');
+    tempDiv.textContent = text;
+    let processedText = tempDiv.innerHTML;
+
+    // Sort errors by length (longest first) to prevent partial word matches
+    const sortedErrors = [...errors].sort((a, b) => b["خطأ"].length - a["خطأ"].length);
+
+    sortedErrors.forEach(errorItem => {
+      const errorWord = errorItem["خطأ"];
+      // Use word boundaries and capture spaces/punctuation
+      const regex = new RegExp(`(^|\\s|[.،؛])(${errorWord})($|\\s|[.،؛])`, 'g');
+      processedText = processedText.replace(regex, (match, before, word, after) => {
+        return `${before}<span 
           class="error-word" 
           style="text-decoration: underline; text-decoration-color: red; text-decoration-thickness: 2px; position: relative; display: inline-block;"
-          data-error-type="${errorType}"
-          data-word="${word}"
-        >${word}</span>`;
-      }
-      return word;
-    }).join(' ');
+          data-error-type="${errorItem["نوع_الخطأ"]}"
+          data-word="${errorItem["خطأ"]}"
+          data-correction="${errorItem["تصحيح_الكلمة"]}"
+        >${word}</span>${after}`;
+      });
+    });
 
-    return result;
+    return processedText;
   }
 
   const showTooltip = (target: HTMLElement) => {
@@ -52,8 +61,9 @@ export function TextEditor() {
 
     const word = target.getAttribute('data-word');
     const errorType = target.getAttribute('data-error-type');
+    const correction = target.getAttribute('data-correction');
     
-    if (word && errorType && currentResponse) {
+    if (word && errorType && correction) {
       const rect = target.getBoundingClientRect();
       const editorRect = document.querySelector('.editor-container')?.getBoundingClientRect();
       
@@ -61,7 +71,7 @@ export function TextEditor() {
         setErrorInfo({
           word,
           type: errorType,
-          correction: currentResponse["تصحيح الكلمة"],
+          correction,
           position: {
             top: rect.top - editorRect.top,
             left: rect.left - editorRect.left + (rect.width / 2),
@@ -89,12 +99,10 @@ export function TextEditor() {
       const target = e.target as HTMLElement;
       const relatedTarget = e.relatedTarget as HTMLElement;
       
-      // Don't hide if moving to tooltip
       if (relatedTarget?.closest('#error-tooltip')) {
         return;
       }
 
-      // Don't hide if moving from tooltip back to error word
       if (target.id === 'error-tooltip' && relatedTarget?.classList.contains('error-word')) {
         return;
       }
@@ -136,35 +144,17 @@ export function TextEditor() {
         clearTimeout(hideTimeoutRef.current);
       }
     };
-  }, [currentResponse]);
+  }, []);
 
   const handleGenerateText = async () => {
     try {
       setIsLoading(true)
       setError(null)
-      const response = await watsonApi.generateText(userInput)
-      console.log('API Response:', response);
-
-      let parsedResponse: WatsonResponse;
-      if (typeof response === 'string') {
-        try {
-          parsedResponse = JSON.parse(response);
-        } catch (e) {
-          console.error('Failed to parse response as JSON:', e);
-          throw new Error('Invalid response format');
-        }
-      } else {
-        parsedResponse = response;
-      }
-
-      console.log('Parsed Response:', parsedResponse);
-      setCurrentResponse(parsedResponse);
+      const errors = await watsonApi.generateText(userInput)
+      console.log('API Response:', errors);
       
-      const displayText = markErrorInText(
-        userInput,
-        parsedResponse["خطأ"],
-        parsedResponse["نوع الخطأ"]
-      );
+      setCurrentErrors(errors);
+      const displayText = markErrorsInText(userInput, errors);
       
       const editorDiv = document.querySelector('[contenteditable]');
       if (editorDiv) {
@@ -198,7 +188,7 @@ export function TextEditor() {
             const newText = e.currentTarget.textContent || '';
             console.log('New user input:', newText);
             setUserInput(newText);
-            setCurrentResponse(null);
+            setCurrentErrors([]);
           }}
         />
         {errorInfo && (
