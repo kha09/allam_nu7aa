@@ -1,7 +1,9 @@
 export interface ErrorItem {
   "خطأ": string;
-  "نوع_الخطأ": string;
-  "تصحيح_الكلمة": string;
+  "نوع الخطأ"?: string;
+  "تصحيح الكلمة"?: string;
+  "نوع_الخطأ"?: string;
+  "تصحيح_الكلمة"?: string;
 }
 
 export type WatsonResponse = ErrorItem[];

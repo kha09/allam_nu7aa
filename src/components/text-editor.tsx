@@ -24,6 +24,9 @@ export function TextEditor() {
   const [currentErrors, setCurrentErrors] = useState<ErrorItem[]>([])
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+  const getErrorType = (error: ErrorItem) => error["نوع_الخطأ"] || error["نوع الخطأ"] || "";
+  const getErrorCorrection = (error: ErrorItem) => error["تصحيح_الكلمة"] || error["تصحيح الكلمة"] || "";
+
   const markErrorsInText = (text: string, errors: ErrorItem[]) => {
     console.log('Marking errors in text:', { text, errors });
 
@@ -37,15 +40,18 @@ export function TextEditor() {
 
     sortedErrors.forEach(errorItem => {
       const errorWord = errorItem["خطأ"];
+      const errorType = getErrorType(errorItem);
+      const correction = getErrorCorrection(errorItem);
+
       // Use word boundaries and capture spaces/punctuation
       const regex = new RegExp(`(^|\\s|[.،؛])(${errorWord})($|\\s|[.،؛])`, 'g');
       processedText = processedText.replace(regex, (match, before, word, after) => {
         return `${before}<span 
           class="error-word" 
           style="text-decoration: underline; text-decoration-color: red; text-decoration-thickness: 2px; position: relative; display: inline-block;"
-          data-error-type="${errorItem["نوع_الخطأ"]}"
-          data-word="${errorItem["خطأ"]}"
-          data-correction="${errorItem["تصحيح_الكلمة"]}"
+          data-error-type="${errorType}"
+          data-word="${errorWord}"
+          data-correction="${correction}"
         >${word}</span>${after}`;
       });
     });
@@ -220,8 +226,8 @@ export function TextEditor() {
                   marginLeft: '-6px',
                 }}
               />
-              <div className="font-bold mb-1">{errorInfo.word}</div>
-              <div className="text-red-600">{errorInfo.type}</div>
+              <div className="font-bold mb-1">الخطأ: {errorInfo.word}</div>
+              <div className="text-red-600">نوع الخطأ: {errorInfo.type}</div>
               <div className="text-green-600 mt-1">التصحيح: {errorInfo.correction}</div>
             </div>
           </div>
