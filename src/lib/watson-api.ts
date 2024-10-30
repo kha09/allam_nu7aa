@@ -1,7 +1,7 @@
 export interface WatsonResponse {
-  "الكلمة": string;
+  "خطأ": string;
   "نوع الخطأ": string;
-  "تصحيح الخطأ": string;
+  "تصحيح الكلمة": string;
 }
 
 export class IBMWatsonAPI {

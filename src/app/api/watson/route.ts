@@ -31,7 +31,7 @@ async function generateText(prompt: string, accessToken: string) {
   const projectId = process.env.IBM_WATSONX_PROJECT_ID;
   const url = "https://eu-de.ml.cloud.ibm.com/ml/v1/text/generation?version=2023-05-29";
   const modelId = "sdaia/allam-1-13b-instruct";
-  const fixedPrompt = process.env.FIXED_PROMPT || "You are an AI assistant that helps with writing and grammar. Please analyze and improve the following text: ";
+  const fixedPrompt = process.env.FIXED_PROMPT || "";
 
   // Combine fixed prompt with user input
   const fullPrompt = `${fixedPrompt}${prompt}`;

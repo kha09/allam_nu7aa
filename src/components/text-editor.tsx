@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Check, ChevronDown, Copy, Edit, Wand2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -9,6 +9,7 @@ import { watsonApi, WatsonResponse } from '@/lib/watson-api'
 interface ErrorInfo {
   word: string;
   type: string;
+  correction: string;
   position: {
     top: number;
     left: number;
@@ -17,89 +18,125 @@ interface ErrorInfo {
 
 export function TextEditor() {
   const [userInput, setUserInput] = useState("")
-  const [correctedText, setCorrectedText] = useState<string | null>(null)
   const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [currentResponse, setCurrentResponse] = useState<WatsonResponse | null>(null)
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  const findDifferences = (original: string, corrected: string, errorType: string) => {
-    console.log('Finding differences between:', { original, corrected, errorType });
+  const markErrorInText = (text: string, errorWord: string, errorType: string) => {
+    console.log('Marking error in text:', { text, errorWord, errorType });
 
-    const originalWords = original.split(/\s+/);
-    const correctedWords = corrected.split(/\s+/);
+    const words = text.split(/\s+/);
     
-    const result = originalWords.map((word, index) => {
-      const isDifferent = word !== correctedWords[index];
-      return isDifferent ? 
-        `<span 
+    const result = words.map(word => {
+      if (word === errorWord) {
+        return `<span 
           class="error-word" 
-          style="text-decoration: underline; text-decoration-color: red; text-decoration-thickness: 2px; position: relative; cursor: help;"
+          style="text-decoration: underline; text-decoration-color: red; text-decoration-thickness: 2px; position: relative; display: inline-block;"
           data-error-type="${errorType}"
           data-word="${word}"
-        >${word}</span>` 
-        : word;
+        >${word}</span>`;
+      }
+      return word;
     }).join(' ');
 
     return result;
   }
 
+  const showTooltip = (target: HTMLElement) => {
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+
+    const word = target.getAttribute('data-word');
+    const errorType = target.getAttribute('data-error-type');
+    
+    if (word && errorType && currentResponse) {
+      const rect = target.getBoundingClientRect();
+      const editorRect = document.querySelector('.editor-container')?.getBoundingClientRect();
+      
+      if (editorRect) {
+        setErrorInfo({
+          word,
+          type: errorType,
+          correction: currentResponse["تصحيح الكلمة"],
+          position: {
+            top: rect.top - editorRect.top,
+            left: rect.left - editorRect.left + (rect.width / 2),
+          }
+        });
+      }
+    }
+  };
+
+  const hideTooltip = () => {
+    hideTimeoutRef.current = setTimeout(() => {
+      setErrorInfo(null);
+    }, 200);
+  };
+
   useEffect(() => {
-    // Add event listeners for hover effects
     const handleMouseEnter = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (target.classList.contains('error-word')) {
-        const word = target.getAttribute('data-word');
-        const errorType = target.getAttribute('data-error-type');
-        
-        if (word && errorType) {
-          const rect = target.getBoundingClientRect();
-          const editorRect = document.querySelector('[contenteditable]')?.getBoundingClientRect();
-          
-          if (editorRect) {
-            // Calculate position relative to the editor
-            const top = rect.top - editorRect.top - 5; // 5px above the word
-            const left = rect.left - editorRect.left + (rect.width / 2); // Centered on the word
-            
-            setErrorInfo({
-              word,
-              type: errorType,
-              position: {
-                top,
-                left,
-              }
-            });
-          }
-        }
+        showTooltip(target);
       }
     };
 
     const handleMouseLeave = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const tooltip = document.getElementById('error-tooltip');
+      const relatedTarget = e.relatedTarget as HTMLElement;
       
-      // Check if mouse is moving to tooltip
-      if (tooltip && e.relatedTarget === tooltip) {
-        return;
-      }
-      
-      // Check if mouse is moving from tooltip back to word
-      if (tooltip && target === tooltip && (e.relatedTarget as HTMLElement)?.classList.contains('error-word')) {
+      // Don't hide if moving to tooltip
+      if (relatedTarget?.closest('#error-tooltip')) {
         return;
       }
 
-      if (target.classList.contains('error-word') || target.id === 'error-tooltip') {
-        setErrorInfo(null);
+      // Don't hide if moving from tooltip back to error word
+      if (target.id === 'error-tooltip' && relatedTarget?.classList.contains('error-word')) {
+        return;
+      }
+
+      hideTooltip();
+    };
+
+    const handleTooltipMouseEnter = () => {
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+        hideTimeoutRef.current = null;
+      }
+    };
+
+    const handleTooltipMouseLeave = (e: MouseEvent) => {
+      const relatedTarget = e.relatedTarget as HTMLElement;
+      if (!relatedTarget?.classList.contains('error-word')) {
+        hideTooltip();
       }
     };
 
     document.addEventListener('mouseover', handleMouseEnter);
     document.addEventListener('mouseout', handleMouseLeave);
 
+    const tooltip = document.getElementById('error-tooltip');
+    if (tooltip) {
+      tooltip.addEventListener('mouseenter', handleTooltipMouseEnter);
+      tooltip.addEventListener('mouseleave', handleTooltipMouseLeave);
+    }
+
     return () => {
       document.removeEventListener('mouseover', handleMouseEnter);
       document.removeEventListener('mouseout', handleMouseLeave);
+      if (tooltip) {
+        tooltip.removeEventListener('mouseenter', handleTooltipMouseEnter);
+        tooltip.removeEventListener('mouseleave', handleTooltipMouseLeave);
+      }
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
     };
-  }, []);
+  }, [currentResponse]);
 
   const handleGenerateText = async () => {
     try {
@@ -121,10 +158,11 @@ export function TextEditor() {
       }
 
       console.log('Parsed Response:', parsedResponse);
-      setCorrectedText(parsedResponse["تصحيح الخطأ"]);
-      const displayText = findDifferences(
-        userInput, 
-        parsedResponse["تصحيح الخطأ"],
+      setCurrentResponse(parsedResponse);
+      
+      const displayText = markErrorInText(
+        userInput,
+        parsedResponse["خطأ"],
         parsedResponse["نوع الخطأ"]
       );
       
@@ -144,7 +182,7 @@ export function TextEditor() {
     <div className="w-full max-w-3xl mx-auto p-4 bg-white rounded-lg shadow-md" dir="rtl">
       <div className="flex justify-between items-center mb-4">
       </div>
-      <div className="relative mb-4">
+      <div className="relative mb-4 editor-container">
         <div
           contentEditable
           suppressContentEditableWarning
@@ -160,33 +198,42 @@ export function TextEditor() {
             const newText = e.currentTarget.textContent || '';
             console.log('New user input:', newText);
             setUserInput(newText);
-            setCorrectedText(null);
+            setCurrentResponse(null);
           }}
         />
         {errorInfo && (
           <div
             id="error-tooltip"
-            className="absolute z-10 bg-white border border-gray-200 rounded-md shadow-lg p-2 text-sm"
+            className="absolute z-50"
             style={{
-              direction: 'rtl',
-              minWidth: '150px',
-              maxWidth: '300px',
-              transform: 'translateX(50%)',
-              top: `${errorInfo.position.top}px`,
+              top: `${errorInfo.position.top - 60}px`,
               left: `${errorInfo.position.left}px`,
-              animation: 'fadeIn 0.2s ease-in-out',
+              transform: 'translate(-50%, 0)',
+              opacity: 1,
+              pointerEvents: 'auto',
             }}
           >
             <div 
-              className="absolute w-3 h-3 bg-white border-t border-r border-gray-200 transform rotate-45"
+              className="bg-white border border-gray-200 rounded-md shadow-lg p-2 text-sm"
               style={{
-                bottom: '-6px',
-                right: '50%',
-                marginRight: '-6px',
+                direction: 'rtl',
+                minWidth: '150px',
+                maxWidth: '300px',
+                position: 'relative',
               }}
-            />
-            <div className="font-bold mb-1">{errorInfo.word}</div>
-            <div className="text-red-600">{errorInfo.type}</div>
+            >
+              <div 
+                className="absolute w-3 h-3 bg-white border-b border-r border-gray-200 transform rotate-45"
+                style={{
+                  bottom: '-7px',
+                  left: '50%',
+                  marginLeft: '-6px',
+                }}
+              />
+              <div className="font-bold mb-1">{errorInfo.word}</div>
+              <div className="text-red-600">{errorInfo.type}</div>
+              <div className="text-green-600 mt-1">التصحيح: {errorInfo.correction}</div>
+            </div>
           </div>
         )}
         <Button 
@@ -225,15 +272,14 @@ export function TextEditor() {
         </div>
       )}
       <style jsx global>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(5px) translateX(50%);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) translateX(50%);
-          }
+        .error-word {
+          transition: background-color 0.2s ease;
+        }
+        .error-word:hover {
+          background-color: rgba(255, 0, 0, 0.1);
+        }
+        #error-tooltip {
+          transition: opacity 0.2s ease;
         }
       `}</style>
     </div>
