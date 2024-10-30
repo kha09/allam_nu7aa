@@ -1,5 +1,11 @@
+export interface WatsonResponse {
+  "الكلمة": string;
+  "نوع الخطأ": string;
+  "تصحيح الخطأ": string;
+}
+
 export class IBMWatsonAPI {
-  async generateText(prompt: string): Promise<string> {
+  async generateText(prompt: string): Promise<WatsonResponse> {
     const response = await fetch('/api/watson', {
       method: 'POST',
       headers: {

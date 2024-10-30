@@ -36,6 +36,8 @@ async function generateText(prompt: string, accessToken: string) {
   // Combine fixed prompt with user input
   const fullPrompt = `${fixedPrompt}${prompt}`;
 
+  console.log('Sending prompt to Watson:', fullPrompt);
+
   const headers = {
     "Accept": "application/json",
     "Content-Type": "application/json",
@@ -60,15 +62,19 @@ async function generateText(prompt: string, accessToken: string) {
   });
 
   if (!response.ok) {
+    console.error('Watson API error:', await response.text());
     throw new Error(`API request failed: ${response.statusText}`);
   }
 
-  return response.json();
+  const result = await response.json();
+  console.log('Watson API response:', result);
+  return result;
 }
 
 export async function POST(request: Request) {
   try {
     const { prompt } = await request.json();
+    console.log('Received prompt:', prompt);
     
     if (!prompt) {
       return NextResponse.json(
@@ -80,6 +86,7 @@ export async function POST(request: Request) {
     const accessToken = await getAccessToken();
     const result = await generateText(prompt, accessToken);
 
+    console.log('Sending response:', result);
     return NextResponse.json(result);
   } catch (error) {
     console.error('Error processing request:', error);
