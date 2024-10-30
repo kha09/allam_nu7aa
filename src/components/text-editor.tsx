@@ -250,14 +250,14 @@ export function TextEditor() {
             disabled={isLoading}
           >
             <Wand2 className="ml-2 h-4 w-4" />
-            {isLoading ? 'جاري التدقيق...' : 'تدقيق'}
+            {isLoading ? 'جاري الكشف...' : 'كشف الأخطاء'}
           </Button>
           <Select defaultValue="translate">
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="اختر الإجراء" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="translate">تدقيق لغوي</SelectItem>
+              <SelectItem value="translate">اللغة العربية</SelectItem>
             </SelectContent>
           </Select>
         </div>
