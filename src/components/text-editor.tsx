@@ -16,7 +16,11 @@ interface ErrorInfo {
   };
 }
 
-export function TextEditor() {
+interface TextEditorProps {
+  onErrorsFound: (errors: WatsonResponse) => void;
+}
+
+export function TextEditor({ onErrorsFound }: TextEditorProps) {
   const [userInput, setUserInput] = useState("")
   const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -165,6 +169,8 @@ export function TextEditor() {
       console.log('API Response:', errors);
       
       setCurrentErrors(errors);
+      onErrorsFound(errors); // Pass errors to parent component
+      
       const displayText = markErrorsInText(userInput, errors);
       
       const editorDiv = document.querySelector('[contenteditable]');
@@ -200,6 +206,7 @@ export function TextEditor() {
             console.log('New user input:', newText);
             setUserInput(newText);
             setCurrentErrors([]);
+            onErrorsFound([]); // Clear errors in parent when input changes
           }}
         />
         {errorInfo && (
