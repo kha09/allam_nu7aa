@@ -1,8 +1,12 @@
 export interface ErrorItem {
-  "خطأ": string;
+  // Original format
+  "خطأ"?: string;
+  // Alternative format
+  "الكلمة الخاطئة"?: string;
+  // Common fields that can use either space or underscore
   "نوع الخطأ"?: string;
-  "تصحيح الكلمة"?: string;
   "نوع_الخطأ"?: string;
+  "تصحيح الكلمة"?: string;
   "تصحيح_الكلمة"?: string;
 }
 

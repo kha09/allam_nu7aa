@@ -24,6 +24,7 @@ export function TextEditor() {
   const [currentErrors, setCurrentErrors] = useState<ErrorItem[]>([])
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+  const getErrorWord = (error: ErrorItem) => error["خطأ"] || error["الكلمة الخاطئة"] || "";
   const getErrorType = (error: ErrorItem) => error["نوع_الخطأ"] || error["نوع الخطأ"] || "";
   const getErrorCorrection = (error: ErrorItem) => error["تصحيح_الكلمة"] || error["تصحيح الكلمة"] || "";
 
@@ -36,15 +37,19 @@ export function TextEditor() {
     let processedText = tempDiv.innerHTML;
 
     // Sort errors by length (longest first) to prevent partial word matches
-    const sortedErrors = [...errors].sort((a, b) => b["خطأ"].length - a["خطأ"].length);
+    const sortedErrors = [...errors].sort((a, b) => {
+      const wordA = getErrorWord(a);
+      const wordB = getErrorWord(b);
+      return wordB.length - wordA.length;
+    });
 
     sortedErrors.forEach(errorItem => {
-      const errorWord = errorItem["خطأ"];
+      const errorWord = getErrorWord(errorItem);
       const errorType = getErrorType(errorItem);
       const correction = getErrorCorrection(errorItem);
 
       // Use word boundaries and capture spaces/punctuation
-      const regex = new RegExp(`(^|\\s|[.،؛])(${errorWord})($|\\s|[.،؛])`, 'g');
+      const regex = new RegExp(`(^|\\s|[.،؛:-])(${errorWord})($|\\s|[.،؛:-])`, 'g');
       processedText = processedText.replace(regex, (match, before, word, after) => {
         return `${before}<span 
           class="error-word" 
@@ -226,8 +231,8 @@ export function TextEditor() {
                   marginLeft: '-6px',
                 }}
               />
-              <div className="font-bold mb-1">الخطأ: {errorInfo.word}</div>
-              <div className="text-red-600">نوع الخطأ: {errorInfo.type}</div>
+              <div className="font-bold mb-1">{errorInfo.word}</div>
+              <div className="text-red-600">{errorInfo.type}</div>
               <div className="text-green-600 mt-1">التصحيح: {errorInfo.correction}</div>
             </div>
           </div>
@@ -250,14 +255,14 @@ export function TextEditor() {
             disabled={isLoading}
           >
             <Wand2 className="ml-2 h-4 w-4" />
-            {isLoading ? 'جاري الكشف...' : 'كشف الأخطاء'}
+            {isLoading ? 'جاري التدقيق...' : 'تدقيق'}
           </Button>
           <Select defaultValue="translate">
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="اختر الإجراء" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="translate">اللغة العربية</SelectItem>
+              <SelectItem value="translate">تدقيق لغوي</SelectItem>
             </SelectContent>
           </Select>
         </div>
