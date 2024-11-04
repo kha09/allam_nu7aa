@@ -16,7 +16,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen p-8 justify-center">
       <div className="flex gap-6 max-w-[1200px] w-full">
-        <div className="w-[400px]">
+        <div className="w-[450px]">
           <ErrorDisplay corrections={corrections} />
         </div>
         <div className="flex-1">

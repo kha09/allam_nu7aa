@@ -1,9 +1,8 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { Check, ChevronDown, Copy, Edit, Wand2 } from 'lucide-react'
+import { Copy, Wand2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { watsonApi, WatsonResponse, ErrorItem } from '@/lib/watson-api'
 
 interface ErrorInfo {
@@ -26,11 +25,42 @@ export function TextEditor({ onErrorsFound }: TextEditorProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentErrors, setCurrentErrors] = useState<ErrorItem[]>([])
+  const [selectedText, setSelectedText] = useState("")
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const getErrorWord = (error: ErrorItem) => error["خطأ"] || error["الكلمة الخاطئة"] || "";
   const getErrorType = (error: ErrorItem) => error["نوع_الخطأ"] || error["نوع الخطأ"] || "";
   const getErrorCorrection = (error: ErrorItem) => error["تصحيح_الكلمة"] || error["تصحيح الكلمة"] || "";
+
+  const handleTextSelection = () => {
+    const selection = window.getSelection();
+    if (selection) {
+      const text = selection.toString().trim();
+      setSelectedText(text);
+      console.log('Selected text:', text);
+    }
+  };
+
+  const handleGenerateSynonyms = async () => {
+    if (!selectedText) {
+      console.log('No text selected');
+      return;
+    }
+    
+    console.log('Generating synonyms for:', selectedText);
+    // TODO: Implement actual API call here
+    // For now, just log to console
+    try {
+      const mockApiCall = {
+        method: 'POST',
+        url: '/api/synonyms',
+        body: { text: selectedText }
+      };
+      console.log('API call would be:', mockApiCall);
+    } catch (err) {
+      console.error('Error generating synonyms:', err);
+    }
+  };
 
   const markErrorsInText = (text: string, errors: ErrorItem[]) => {
     console.log('Marking errors in text:', { text, errors });
@@ -208,6 +238,7 @@ export function TextEditor({ onErrorsFound }: TextEditorProps) {
             setCurrentErrors([]);
             onErrorsFound([]); // Clear errors in parent when input changes
           }}
+          onMouseUp={handleTextSelection}
         />
         {errorInfo && (
           <div
@@ -264,14 +295,13 @@ export function TextEditor({ onErrorsFound }: TextEditorProps) {
             <Wand2 className="ml-2 h-4 w-4" />
             {isLoading ? 'جاري التدقيق...' : 'تدقيق'}
           </Button>
-          <Select defaultValue="translate">
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="اختر الإجراء" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="translate">تدقيق لغوي</SelectItem>
-            </SelectContent>
-          </Select>
+          <Button
+            variant="outline"
+            className="w-[140px]"
+            onClick={handleGenerateSynonyms}
+          >
+            توليد مرادفات
+          </Button>
         </div>
       </div>
       {error && (
