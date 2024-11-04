@@ -26,6 +26,7 @@ export function TextEditor({ onErrorsFound }: TextEditorProps) {
   const [error, setError] = useState<string | null>(null)
   const [currentErrors, setCurrentErrors] = useState<ErrorItem[]>([])
   const [selectedText, setSelectedText] = useState("")
+  const [isSynonymLoading, setIsSynonymLoading] = useState(false)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const getErrorWord = (error: ErrorItem) => error["خطأ"] || error["الكلمة الخاطئة"] || "";
@@ -48,17 +49,18 @@ export function TextEditor({ onErrorsFound }: TextEditorProps) {
     }
     
     console.log('Generating synonyms for:', selectedText);
-    // TODO: Implement actual API call here
-    // For now, just log to console
+    
     try {
-      const mockApiCall = {
-        method: 'POST',
-        url: '/api/synonyms',
-        body: { text: selectedText }
-      };
-      console.log('API call would be:', mockApiCall);
+      setIsSynonymLoading(true);
+      const response = await watsonApi.generateSynonyms(selectedText);
+      const synonyms = response.results[0].generated_text;
+      console.log('Generated synonyms:', synonyms);
+      
     } catch (err) {
       console.error('Error generating synonyms:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred generating synonyms');
+    } finally {
+      setIsSynonymLoading(false);
     }
   };
 
@@ -299,8 +301,9 @@ export function TextEditor({ onErrorsFound }: TextEditorProps) {
             variant="outline"
             className="w-[140px]"
             onClick={handleGenerateSynonyms}
+            disabled={isSynonymLoading || !selectedText}
           >
-            توليد مرادفات
+            {isSynonymLoading ? 'جاري التوليد...' : 'توليد مرادفات'}
           </Button>
         </div>
       </div>
