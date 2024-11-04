@@ -17,9 +17,10 @@ interface ErrorInfo {
 
 interface TextEditorProps {
   onErrorsFound: (errors: WatsonResponse) => void;
+  onSynonymsGenerated: (synonyms: string) => void;
 }
 
-export function TextEditor({ onErrorsFound }: TextEditorProps) {
+export function TextEditor({ onErrorsFound, onSynonymsGenerated }: TextEditorProps) {
   const [userInput, setUserInput] = useState("")
   const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -29,7 +30,7 @@ export function TextEditor({ onErrorsFound }: TextEditorProps) {
   const [isSynonymLoading, setIsSynonymLoading] = useState(false)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  const getErrorWord = (error: ErrorItem) => error["خطأ"] || error["الكلمة الخاطئة"] || "";
+  const getErrorWord = (error: ErrorItem) => error["خطأ"] || error["الكلمة الخاطئة"] || error["الكلمة_الخاطئة"] || "";
   const getErrorType = (error: ErrorItem) => error["نوع_الخطأ"] || error["نوع الخطأ"] || "";
   const getErrorCorrection = (error: ErrorItem) => error["تصحيح_الكلمة"] || error["تصحيح الكلمة"] || "";
 
@@ -55,6 +56,7 @@ export function TextEditor({ onErrorsFound }: TextEditorProps) {
       const response = await watsonApi.generateSynonyms(selectedText);
       const synonyms = response.results[0].generated_text;
       console.log('Generated synonyms:', synonyms);
+      onSynonymsGenerated(synonyms);
       
     } catch (err) {
       console.error('Error generating synonyms:', err);
