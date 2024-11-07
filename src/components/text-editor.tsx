@@ -249,7 +249,7 @@ export function TextEditor({ onErrorsFound, onSynonymsGenerated }: TextEditorPro
             id="error-tooltip"
             className="absolute z-50"
             style={{
-              top: `${errorInfo.position.top - 60}px`,
+              top: `${errorInfo.position.top - 100}px`,
               left: `${errorInfo.position.left}px`,
               transform: 'translate(-50%, 0)',
               opacity: 1,
