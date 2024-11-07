@@ -273,8 +273,8 @@ export function TextEditor({ onErrorsFound, onSynonymsGenerated }: TextEditorPro
                   marginLeft: '-6px',
                 }}
               />
-              <div className="font-bold mb-1">{errorInfo.word}</div>
-              <div className="text-red-600">{errorInfo.type}</div>
+              <div className="font-bold mb-1">الخطأ: {errorInfo.word}</div>
+              <div className="text-red-600">نوع الخطأ: {errorInfo.type}</div>
               <div className="text-green-600 mt-1">التصحيح: {errorInfo.correction}</div>
             </div>
           </div>
