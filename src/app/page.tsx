@@ -3,11 +3,12 @@
 import { TextEditor } from "@/components/text-editor"
 import { ErrorDisplay } from "@/components/error-display"
 import { watsonApi, type WatsonResponse } from "@/lib/watson-api"
-import { useState } from "react"
+import { useState, useRef } from "react"
 
 export default function Home() {
   const [corrections, setCorrections] = useState<WatsonResponse>([])
   const [synonyms, setSynonyms] = useState<string>("")
+  const editorRef = useRef<{ handleCorrection: (errorWord: string, correction: string) => void } | null>(null)
 
   // Function to update corrections when new errors are found
   const handleErrorsFound = (newCorrections: WatsonResponse) => {
@@ -28,10 +29,14 @@ export default function Home() {
           <ErrorDisplay 
             corrections={corrections} 
             synonyms={synonyms}
+            onCorrection={(errorWord, correction) => {
+              editorRef.current?.handleCorrection(errorWord, correction)
+            }}
           />
         </div>
         <div className="flex-1">
           <TextEditor 
+            ref={editorRef}
             onErrorsFound={handleErrorsFound}
             onSynonymsGenerated={handleSynonymsGenerated}
           />

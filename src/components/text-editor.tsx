@@ -1,9 +1,10 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react'
 import { Copy, Wand2 } from 'lucide-react'
-import { Button } from "@/components/ui/button"
+import { Button } from "./ui/button"
 import { watsonApi, WatsonResponse, ErrorItem } from '@/lib/watson-api'
+import { ErrorDisplay } from './error-display'
 
 interface ErrorInfo {
   word: string;
@@ -20,7 +21,11 @@ interface TextEditorProps {
   onSynonymsGenerated: (synonyms: string) => void;
 }
 
-export function TextEditor({ onErrorsFound, onSynonymsGenerated }: TextEditorProps) {
+export interface TextEditorRef {
+  handleCorrection: (errorWord: string, correction: string) => void;
+}
+
+export const TextEditor = forwardRef<TextEditorRef, TextEditorProps>(({ onErrorsFound, onSynonymsGenerated }, ref) => {
   const [userInput, setUserInput] = useState("")
   const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -30,9 +35,28 @@ export function TextEditor({ onErrorsFound, onSynonymsGenerated }: TextEditorPro
   const [isSynonymLoading, setIsSynonymLoading] = useState(false)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  const getErrorWord = (error: ErrorItem) => error["خطأ"] || error["الكلمة الخاطئة"] || error["الكلمة_الخاطئة"] || "";
-  const getErrorType = (error: ErrorItem) => error["نوع_الخطأ"] || error["نوع الخطأ"] || "";
-  const getErrorCorrection = (error: ErrorItem) => error["تصحيح_الكلمة"] || error["تصحيح الكلمة"] || "";
+  const getErrorWord = (error: ErrorItem) => error["خطأ"] || error["الكلمة_الخاطئة"] || "";
+  const getErrorType = (error: ErrorItem) => error["نوع_الخطأ"] || "";
+  const getErrorCorrection = (error: ErrorItem) => error["تصحيح_الكلمة"] || "";
+
+  const handleCorrection = (errorWord: string, correction: string) => {
+    const editorDiv = document.querySelector('[contenteditable]');
+    if (editorDiv) {
+      // Find the error span element
+      const errorSpan = editorDiv.querySelector(`[data-word="${errorWord}"]`);
+      if (errorSpan) {
+        // Replace the text content while maintaining the span
+        errorSpan.textContent = correction;
+        // Update the userInput state with the new content
+        setUserInput(editorDiv.textContent || '');
+      }
+    }
+  };
+
+  // Expose handleCorrection method via ref
+  useImperativeHandle(ref, () => ({
+    handleCorrection
+  }));
 
   const handleTextSelection = () => {
     const selection = window.getSelection();
@@ -327,4 +351,6 @@ export function TextEditor({ onErrorsFound, onSynonymsGenerated }: TextEditorPro
       `}</style>
     </div>
   )
-}
+})
+
+TextEditor.displayName = 'TextEditor'

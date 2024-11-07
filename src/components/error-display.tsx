@@ -7,11 +7,18 @@ import { type WatsonResponse } from "@/lib/watson-api"
 interface ErrorDisplayProps {
   corrections: WatsonResponse;
   synonyms?: string;
+  onCorrection?: (errorWord: string, correction: string) => void;
 }
 
-export function ErrorDisplay({ corrections, synonyms }: ErrorDisplayProps) {
+export function ErrorDisplay({ corrections, synonyms, onCorrection }: ErrorDisplayProps) {
   // Split synonyms into array by newline
   const synonymList = synonyms?.split('\n').filter(line => line.trim() !== '') || [];
+
+  const handleCorrection = (errorWord: string, correction: string) => {
+    if (onCorrection) {
+      onCorrection(errorWord, correction);
+    }
+  };
 
   return (
     <Card className="w-full max-w-md border-2 border-pink-200 rounded-xl shadow-sm" dir="rtl">
@@ -45,6 +52,10 @@ export function ErrorDisplay({ corrections, synonyms }: ErrorDisplayProps) {
                   variant="outline" 
                   size="sm"
                   className="text-gray-600 hover:text-gray-800"
+                  onClick={() => handleCorrection(
+                    correction.خطأ || correction.الكلمة_الخاطئة || '',
+                    correction.تصحيح_الكلمة || ''
+                  )}
                 >
                   تصحيح
                 </Button>
