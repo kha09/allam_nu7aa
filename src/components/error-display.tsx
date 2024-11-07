@@ -1,6 +1,7 @@
 'use client'
 
-import { Card, CardHeader, CardContent } from "@/components/ui/card"
+import { Card, CardHeader, CardContent } from "./ui/card"
+import { Button } from "./ui/button"
 import { type WatsonResponse } from "@/lib/watson-api"
 
 interface ErrorDisplayProps {
@@ -33,11 +34,20 @@ export function ErrorDisplay({ corrections, synonyms }: ErrorDisplayProps) {
           // Display error corrections
           corrections.map((correction, index) => (
             <div key={index} className="py-2 border-b border-gray-100 last:border-b-0">
-              <p className="text-gray-500 text-sm mb-1">{correction['نوع الخطأ'] || correction['نوع_الخطأ']}</p>
-              <div className="flex items-center gap-2 text-lg">
-                <span className="text-red-500 font-bold">{correction['الكلمة الخاطئة'] || correction['خطأ'] || correction['الكلمة_الخاطئة']}</span>
-                <span className="text-gray-400">◄</span>
-                <span className="text-blue-500">{correction['تصحيح الكلمة'] || correction['تصحيح_الكلمة']}</span>
+              <p className="text-gray-500 text-sm mb-1">{correction.نوع_الخطأ}</p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-lg">
+                  <span className="text-red-500 font-bold">{correction.خطأ || correction.الكلمة_الخاطئة}</span>
+                  <span className="text-gray-400">◄</span>
+                  <span className="text-blue-500">{correction.تصحيح_الكلمة}</span>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="text-gray-600 hover:text-gray-800"
+                >
+                  تصحيح
+                </Button>
               </div>
             </div>
           ))
