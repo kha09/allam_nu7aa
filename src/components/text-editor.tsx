@@ -45,8 +45,10 @@ export const TextEditor = forwardRef<TextEditorRef, TextEditorProps>(({ onErrors
       // Find the error span element
       const errorSpan = editorDiv.querySelector(`[data-word="${errorWord}"]`);
       if (errorSpan) {
-        // Replace the text content while maintaining the span
-        errorSpan.textContent = correction;
+        // Create a new text node with the correction
+        const textNode = document.createTextNode(correction);
+        // Replace the span with the text node
+        errorSpan.parentNode?.replaceChild(textNode, errorSpan);
         // Update the userInput state with the new content
         setUserInput(editorDiv.textContent || '');
       }
