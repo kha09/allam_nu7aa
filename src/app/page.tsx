@@ -8,6 +8,7 @@ import { useState, useRef } from "react"
 export default function Home() {
   const [corrections, setCorrections] = useState<WatsonResponse>([])
   const [synonyms, setSynonyms] = useState<string>("")
+  const [selectedText, setSelectedText] = useState<string>("")
   const editorRef = useRef<TextEditorRef>(null)
 
   // Function to update corrections when new errors are found
@@ -22,6 +23,11 @@ export default function Home() {
     setCorrections([]) // Clear corrections when showing synonyms
   }
 
+  // Function to handle selected text changes
+  const handleSelectedTextChange = (text: string) => {
+    setSelectedText(text)
+  }
+
   return (
     <main className="flex min-h-screen pt-16 p-8 justify-center">
       <div className="flex gap-6 max-w-[1200px] w-full">
@@ -29,11 +35,15 @@ export default function Home() {
           <ErrorDisplay 
             corrections={corrections} 
             synonyms={synonyms}
+            selectedText={selectedText}
             onCorrection={(errorWord, correction) => {
               editorRef.current?.handleCorrection(errorWord, correction)
             }}
             onCorrectAll={(corrections) => {
               editorRef.current?.handleCorrectAll(corrections)
+            }}
+            onSynonymSelect={(synonym) => {
+              editorRef.current?.handleSynonymReplace(synonym)
             }}
           />
         </div>
@@ -42,6 +52,7 @@ export default function Home() {
             ref={editorRef}
             onErrorsFound={handleErrorsFound}
             onSynonymsGenerated={handleSynonymsGenerated}
+            onSelectedTextChange={handleSelectedTextChange}
           />
         </div>
       </div>

@@ -19,14 +19,17 @@ interface ErrorInfo {
 interface TextEditorProps {
   onErrorsFound: (errors: WatsonResponse) => void;
   onSynonymsGenerated: (synonyms: string) => void;
+  onSelectedTextChange: (text: string) => void;
 }
 
 export interface TextEditorRef {
   handleCorrection: (errorWord: string, correction: string) => void;
   handleCorrectAll: (corrections: Array<{ errorWord: string, correction: string }>) => void;
+  handleSynonymReplace: (synonym: string) => void;
 }
 
-export const TextEditor = forwardRef<TextEditorRef, TextEditorProps>(({ onErrorsFound, onSynonymsGenerated }, ref) => {
+export const TextEditor = forwardRef<TextEditorRef, TextEditorProps>(
+  ({ onErrorsFound, onSynonymsGenerated, onSelectedTextChange }, ref) => {
   const [userInput, setUserInput] = useState("")
   const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -36,6 +39,7 @@ export const TextEditor = forwardRef<TextEditorRef, TextEditorProps>(({ onErrors
   const [isSynonymLoading, setIsSynonymLoading] = useState(false)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const editorRef = useRef<HTMLDivElement>(null)
+  const selectionRef = useRef<{ start: number; end: number } | null>(null)
 
   const getErrorWord = (error: ErrorItem) => error["خطأ"] || error["الكلمة_الخاطئة"] || error["الكلمة الخاطئة"] || "";
   const getErrorType = (error: ErrorItem) => error["نوع_الخطأ"] || error["نوع الخطأ"] || "";
@@ -73,10 +77,28 @@ export const TextEditor = forwardRef<TextEditorRef, TextEditorProps>(({ onErrors
     }
   };
 
+  const handleSynonymReplace = (synonym: string) => {
+    if (editorRef.current && selectedText) {
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const textNode = document.createTextNode(synonym);
+        range.deleteContents();
+        range.insertNode(textNode);
+        // Update the userInput state with the new content
+        setUserInput(editorRef.current.textContent || '');
+        // Clear selection
+        setSelectedText('');
+        onSelectedTextChange('');
+      }
+    }
+  };
+
   // Expose methods via ref
   useImperativeHandle(ref, () => ({
     handleCorrection,
-    handleCorrectAll
+    handleCorrectAll,
+    handleSynonymReplace
   }));
 
   const handleTextSelection = () => {
@@ -84,6 +106,7 @@ export const TextEditor = forwardRef<TextEditorRef, TextEditorProps>(({ onErrors
     if (selection) {
       const text = selection.toString().trim();
       setSelectedText(text);
+      onSelectedTextChange(text);
       console.log('Selected text:', text);
     }
   };

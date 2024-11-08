@@ -7,11 +7,20 @@ import { type WatsonResponse } from "@/lib/watson-api"
 interface ErrorDisplayProps {
   corrections: WatsonResponse;
   synonyms?: string;
+  selectedText?: string;
   onCorrection?: (errorWord: string, correction: string) => void;
   onCorrectAll?: (corrections: Array<{ errorWord: string, correction: string }>) => void;
+  onSynonymSelect?: (synonym: string) => void;
 }
 
-export function ErrorDisplay({ corrections, synonyms, onCorrection, onCorrectAll }: ErrorDisplayProps) {
+export function ErrorDisplay({ 
+  corrections, 
+  synonyms, 
+  selectedText,
+  onCorrection, 
+  onCorrectAll,
+  onSynonymSelect 
+}: ErrorDisplayProps) {
   // Split synonyms into array by newline
   const synonymList = synonyms?.split('\n').filter(line => line.trim() !== '') || [];
 
@@ -32,6 +41,12 @@ export function ErrorDisplay({ corrections, synonyms, onCorrection, onCorrectAll
         correction: getErrorCorrection(correction)
       }));
       onCorrectAll(allCorrections);
+    }
+  };
+
+  const handleSynonymSelect = (synonym: string) => {
+    if (onSynonymSelect && selectedText) {
+      onSynonymSelect(synonym);
     }
   };
 
@@ -59,8 +74,17 @@ export function ErrorDisplay({ corrections, synonyms, onCorrection, onCorrectAll
           // Display synonyms as a list
           <div className="space-y-2">
             {synonymList.map((synonym, index) => (
-              <div key={index} className="py-2 border-b border-gray-100 last:border-b-0">
+              <div key={index} className="py-2 border-b border-gray-100 last:border-b-0 flex justify-between items-center">
                 <p className="text-gray-800">{synonym}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-gray-600 hover:text-gray-800"
+                  onClick={() => handleSynonymSelect(synonym)}
+                  disabled={!selectedText}
+                >
+                  استبدال
+                </Button>
               </div>
             ))}
           </div>
