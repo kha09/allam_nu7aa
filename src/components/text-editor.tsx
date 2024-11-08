@@ -34,23 +34,23 @@ export const TextEditor = forwardRef<TextEditorRef, TextEditorProps>(({ onErrors
   const [selectedText, setSelectedText] = useState("")
   const [isSynonymLoading, setIsSynonymLoading] = useState(false)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const editorRef = useRef<HTMLDivElement>(null)
 
-  const getErrorWord = (error: ErrorItem) => error["خطأ"] || error["الكلمة_الخاطئة"] || "";
-  const getErrorType = (error: ErrorItem) => error["نوع_الخطأ"] || "";
-  const getErrorCorrection = (error: ErrorItem) => error["تصحيح_الكلمة"] || "";
+  const getErrorWord = (error: ErrorItem) => error["خطأ"] || error["الكلمة_الخاطئة"] || error["الكلمة الخاطئة"] || "";
+  const getErrorType = (error: ErrorItem) => error["نوع_الخطأ"] || error["نوع الخطأ"] || "";
+  const getErrorCorrection = (error: ErrorItem) => error["تصحيح_الكلمة"] || error["تصحيح الكلمة"] || "";
 
   const handleCorrection = (errorWord: string, correction: string) => {
-    const editorDiv = document.querySelector('[contenteditable]');
-    if (editorDiv) {
+    if (editorRef.current) {
       // Find the error span element
-      const errorSpan = editorDiv.querySelector(`[data-word="${errorWord}"]`);
+      const errorSpan = editorRef.current.querySelector(`[data-word="${errorWord}"]`);
       if (errorSpan) {
         // Create a new text node with the correction
         const textNode = document.createTextNode(correction);
         // Replace the span with the text node
         errorSpan.parentNode?.replaceChild(textNode, errorSpan);
         // Update the userInput state with the new content
-        setUserInput(editorDiv.textContent || '');
+        setUserInput(editorRef.current.textContent || '');
       }
     }
   };
@@ -140,7 +140,7 @@ export const TextEditor = forwardRef<TextEditorRef, TextEditorProps>(({ onErrors
     
     if (word && errorType && correction) {
       const rect = target.getBoundingClientRect();
-      const editorRect = document.querySelector('.editor-container')?.getBoundingClientRect();
+      const editorRect = editorRef.current?.getBoundingClientRect();
       
       if (editorRect) {
         setErrorInfo({
@@ -163,6 +163,9 @@ export const TextEditor = forwardRef<TextEditorRef, TextEditorProps>(({ onErrors
   };
 
   useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+
     const handleMouseEnter = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (target.classList.contains('error-word')) {
@@ -199,8 +202,8 @@ export const TextEditor = forwardRef<TextEditorRef, TextEditorProps>(({ onErrors
       }
     };
 
-    document.addEventListener('mouseover', handleMouseEnter);
-    document.addEventListener('mouseout', handleMouseLeave);
+    editor.addEventListener('mouseover', handleMouseEnter);
+    editor.addEventListener('mouseout', handleMouseLeave);
 
     const tooltip = document.getElementById('error-tooltip');
     if (tooltip) {
@@ -209,8 +212,8 @@ export const TextEditor = forwardRef<TextEditorRef, TextEditorProps>(({ onErrors
     }
 
     return () => {
-      document.removeEventListener('mouseover', handleMouseEnter);
-      document.removeEventListener('mouseout', handleMouseLeave);
+      editor.removeEventListener('mouseover', handleMouseEnter);
+      editor.removeEventListener('mouseout', handleMouseLeave);
       if (tooltip) {
         tooltip.removeEventListener('mouseenter', handleTooltipMouseEnter);
         tooltip.removeEventListener('mouseleave', handleTooltipMouseLeave);
@@ -233,9 +236,8 @@ export const TextEditor = forwardRef<TextEditorRef, TextEditorProps>(({ onErrors
       
       const displayText = markErrorsInText(userInput, errors);
       
-      const editorDiv = document.querySelector('[contenteditable]');
-      if (editorDiv) {
-        editorDiv.innerHTML = displayText;
+      if (editorRef.current) {
+        editorRef.current.innerHTML = displayText;
       }
     } catch (err) {
       console.error('Error in handleGenerateText:', err);
@@ -251,6 +253,7 @@ export const TextEditor = forwardRef<TextEditorRef, TextEditorProps>(({ onErrors
       </div>
       <div className="relative mb-4 editor-container">
         <div
+          ref={editorRef}
           contentEditable
           suppressContentEditableWarning
           spellCheck="false"
