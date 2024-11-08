@@ -21,8 +21,10 @@ export function ErrorDisplay({
   onCorrectAll,
   onSynonymSelect 
 }: ErrorDisplayProps) {
-  // Split synonyms into array by newline
-  const synonymList = synonyms?.split('\n').filter(line => line.trim() !== '') || [];
+  // Split synonyms into array by newline and clean up numbers and leading whitespace
+  const synonymList = synonyms?.split('\n')
+    .filter(line => line.trim() !== '')
+    .map(line => line.replace(/^[\d\s.،؛:-]+\s*/, '').trim()) || [];
 
   const getErrorWord = (error: any) => error["خطأ"] || error["الكلمة_الخاطئة"] || error["الكلمة الخاطئة"] || "";
   const getErrorType = (error: any) => error["نوع_الخطأ"] || error["نوع الخطأ"] || "";

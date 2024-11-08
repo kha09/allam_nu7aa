@@ -39,7 +39,6 @@ export const TextEditor = forwardRef<TextEditorRef, TextEditorProps>(
   const [isSynonymLoading, setIsSynonymLoading] = useState(false)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const editorRef = useRef<HTMLDivElement>(null)
-  const selectionRef = useRef<{ start: number; end: number } | null>(null)
 
   const getErrorWord = (error: ErrorItem) => error["خطأ"] || error["الكلمة_الخاطئة"] || error["الكلمة الخاطئة"] || "";
   const getErrorType = (error: ErrorItem) => error["نوع_الخطأ"] || error["نوع الخطأ"] || "";
