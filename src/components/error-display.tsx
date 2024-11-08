@@ -14,6 +14,10 @@ export function ErrorDisplay({ corrections, synonyms, onCorrection }: ErrorDispl
   // Split synonyms into array by newline
   const synonymList = synonyms?.split('\n').filter(line => line.trim() !== '') || [];
 
+  const getErrorWord = (error: any) => error["خطأ"] || error["الكلمة_الخاطئة"] || error["الكلمة الخاطئة"] || "";
+  const getErrorType = (error: any) => error["نوع_الخطأ"] || error["نوع الخطأ"] || "";
+  const getErrorCorrection = (error: any) => error["تصحيح_الكلمة"] || error["تصحيح الكلمة"] || "";
+
   const handleCorrection = (errorWord: string, correction: string) => {
     if (onCorrection) {
       onCorrection(errorWord, correction);
@@ -41,20 +45,20 @@ export function ErrorDisplay({ corrections, synonyms, onCorrection }: ErrorDispl
           // Display error corrections
           corrections.map((correction, index) => (
             <div key={index} className="py-2 border-b border-gray-100 last:border-b-0">
-              <p className="text-gray-500 text-sm mb-1">{correction.نوع_الخطأ}</p>
+              <p className="text-gray-500 text-sm mb-1">{getErrorType(correction)}</p>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-lg">
-                  <span className="text-red-500 font-bold">{correction.خطأ || correction.الكلمة_الخاطئة}</span>
+                  <span className="text-red-500 font-bold">{getErrorWord(correction)}</span>
                   <span className="text-gray-400">◄</span>
-                  <span className="text-blue-500">{correction.تصحيح_الكلمة}</span>
+                  <span className="text-blue-500">{getErrorCorrection(correction)}</span>
                 </div>
                 <Button 
                   variant="outline" 
                   size="sm"
                   className="text-gray-600 hover:text-gray-800"
                   onClick={() => handleCorrection(
-                    correction.خطأ || correction.الكلمة_الخاطئة || '',
-                    correction.تصحيح_الكلمة || ''
+                    getErrorWord(correction),
+                    getErrorCorrection(correction)
                   )}
                 >
                   تصحيح
