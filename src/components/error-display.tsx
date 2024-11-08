@@ -8,9 +8,10 @@ interface ErrorDisplayProps {
   corrections: WatsonResponse;
   synonyms?: string;
   onCorrection?: (errorWord: string, correction: string) => void;
+  onCorrectAll?: (corrections: Array<{ errorWord: string, correction: string }>) => void;
 }
 
-export function ErrorDisplay({ corrections, synonyms, onCorrection }: ErrorDisplayProps) {
+export function ErrorDisplay({ corrections, synonyms, onCorrection, onCorrectAll }: ErrorDisplayProps) {
   // Split synonyms into array by newline
   const synonymList = synonyms?.split('\n').filter(line => line.trim() !== '') || [];
 
@@ -24,12 +25,34 @@ export function ErrorDisplay({ corrections, synonyms, onCorrection }: ErrorDispl
     }
   };
 
+  const handleCorrectAll = () => {
+    if (onCorrectAll) {
+      const allCorrections = corrections.map(correction => ({
+        errorWord: getErrorWord(correction),
+        correction: getErrorCorrection(correction)
+      }));
+      onCorrectAll(allCorrections);
+    }
+  };
+
   return (
     <Card className="w-full max-w-md border-2 border-pink-200 rounded-xl shadow-sm" dir="rtl">
       <CardHeader className="border-b border-gray-100">
-        <h2 className="text-xl font-semibold text-center text-gray-800">
-          {synonyms ? 'إعادة الصياغة' : 'الأخطاء و الملاحظات'}
-        </h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-800">
+            {synonyms ? 'إعادة الصياغة' : 'الأخطاء و الملاحظات'}
+          </h2>
+          {!synonyms && corrections.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-gray-600 hover:text-gray-800"
+              onClick={handleCorrectAll}
+            >
+              تصحيح الكل
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="p-4 space-y-2">
         {synonyms ? (

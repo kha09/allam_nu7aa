@@ -23,6 +23,7 @@ interface TextEditorProps {
 
 export interface TextEditorRef {
   handleCorrection: (errorWord: string, correction: string) => void;
+  handleCorrectAll: (corrections: Array<{ errorWord: string, correction: string }>) => void;
 }
 
 export const TextEditor = forwardRef<TextEditorRef, TextEditorProps>(({ onErrorsFound, onSynonymsGenerated }, ref) => {
@@ -55,9 +56,27 @@ export const TextEditor = forwardRef<TextEditorRef, TextEditorProps>(({ onErrors
     }
   };
 
-  // Expose handleCorrection method via ref
+  const handleCorrectAll = (corrections: Array<{ errorWord: string, correction: string }>) => {
+    if (editorRef.current) {
+      let content = editorRef.current.innerHTML;
+      corrections.forEach(({ errorWord, correction }) => {
+        const errorSpan = editorRef.current?.querySelector(`[data-word="${errorWord}"]`);
+        if (errorSpan) {
+          // Create a new text node with the correction
+          const textNode = document.createTextNode(correction);
+          // Replace the span with the text node
+          errorSpan.parentNode?.replaceChild(textNode, errorSpan);
+        }
+      });
+      // Update the userInput state with the new content
+      setUserInput(editorRef.current.textContent || '');
+    }
+  };
+
+  // Expose methods via ref
   useImperativeHandle(ref, () => ({
-    handleCorrection
+    handleCorrection,
+    handleCorrectAll
   }));
 
   const handleTextSelection = () => {

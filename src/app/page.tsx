@@ -1,6 +1,6 @@
 'use client'
 
-import { TextEditor } from "@/components/text-editor"
+import { TextEditor, type TextEditorRef } from "@/components/text-editor"
 import { ErrorDisplay } from "@/components/error-display"
 import { watsonApi, type WatsonResponse } from "@/lib/watson-api"
 import { useState, useRef } from "react"
@@ -8,7 +8,7 @@ import { useState, useRef } from "react"
 export default function Home() {
   const [corrections, setCorrections] = useState<WatsonResponse>([])
   const [synonyms, setSynonyms] = useState<string>("")
-  const editorRef = useRef<{ handleCorrection: (errorWord: string, correction: string) => void } | null>(null)
+  const editorRef = useRef<TextEditorRef>(null)
 
   // Function to update corrections when new errors are found
   const handleErrorsFound = (newCorrections: WatsonResponse) => {
@@ -31,6 +31,9 @@ export default function Home() {
             synonyms={synonyms}
             onCorrection={(errorWord, correction) => {
               editorRef.current?.handleCorrection(errorWord, correction)
+            }}
+            onCorrectAll={(corrections) => {
+              editorRef.current?.handleCorrectAll(corrections)
             }}
           />
         </div>
