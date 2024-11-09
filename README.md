@@ -13,27 +13,28 @@ Follow these steps to set up and run the project on your local environment:
    cd <project-folder>
 
 3. **Install Dependencies**
+   
+   ```bash
+   npm install
+   # or
+   yarn install
+   # or
+   pnpm install
+   # or
+   bun install
 
-npm install
-# or
-yarn install
-# or
-pnpm install
-# or
-bun install
+4. **Run the Development Server**  
+   Start the development server with one of the following commands:
 
-4. **Run the Development Server**
-Start the development server with one of the following commands:
+   ```bash
+   نسخ الكود
+   npm run dev
+   # or
+   yarn dev
+   # or
+   pnpm dev
+   # or
+   bun dev
 
-bash
-نسخ الكود
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-
-5. **View the Project**
-Open your browser and navigate to [http://localhost:3000](http://localhost:3000) to view the application. The server will automatically reload if you make edits to the code.
+5. **View the Project**  
+   Open your browser and navigate to [http://localhost:3000](http://localhost:3000) to view the application. The server will automatically reload if you make edits to the code.
