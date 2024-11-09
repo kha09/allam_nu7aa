@@ -1,6 +1,7 @@
 ## Getting Started
 1. Install [NodeJS](https://nodejs.org/en) on your system.
-2. Run the development server:
+2. Download the project.
+3. Run the development server:
 
 ```bash
 npm run dev
