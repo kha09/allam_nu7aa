@@ -30,7 +30,7 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen pt-16 p-8 justify-center">
-      <div className="flex gap-6 max-w-[1200px] w-full">
+      <div className="flex gap-6 max-w-[1200px] w-full margint">
         <div className="flex-1">
           <TextEditor 
             ref={editorRef}
