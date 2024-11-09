@@ -20,23 +20,23 @@ export default function RootLayout({
             <div className="flex items-center">
               <Link href="/" className="flex items-center space-x-2 rtl:space-x-reverse pr-4">
                 <Image 
-                  src="/logos/sample-logo.png" 
+                  src="/logos/Nu7aa Logo.svg" 
                   alt="Logo" 
                   width={50} 
                   height={50} 
                   className="rounded-full"
                 />
-                <span className="text-xl font-semibold text-gray-800">تدقيق</span>
+                <span className="text-xl font-semibold text-gray-800"></span>
               </Link>
               <Link href="/" className="flex items-center space-x-2 rtl:space-x-reverse pr-6">
                 <Image 
-                  src="/logos/sample-logo.png" 
+                  src="/logos/allam.svg" 
                   alt="Logo" 
                   width={50} 
                   height={50} 
                   className="rounded-full"
                 />
-                <span className="text-xl font-semibold text-gray-800">تدقيق</span>
+                <span className="text-xl font-semibold text-gray-800"></span>
               </Link>
             </div>
           </div>

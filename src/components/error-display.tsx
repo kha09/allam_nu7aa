@@ -53,7 +53,7 @@ export function ErrorDisplay({
   };
 
   return (
-    <Card className="w-full max-w-md border-2 border-pink-200 rounded-xl shadow-sm" dir="rtl">
+    <Card className="w-full max-w-md border-2 rounded-xl shadow-sm" dir="rtl">
       <CardHeader className="border-b border-gray-100">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-800">
