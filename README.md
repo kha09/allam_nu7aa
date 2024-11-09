@@ -27,7 +27,6 @@ Follow these steps to set up and run the project on your local environment:
    Start the development server with one of the following commands:
 
    ```bash
-   نسخ الكود
    npm run dev
    # or
    yarn dev
